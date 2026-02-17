@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spectre Hologram Workshop - SJSU School of Information</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ischool: {
+                            blue: '#1865BF',
+                            'blue-light': '#E4EEF7',
+                            dark: '#333333',
+                            yellow: '#FFCC00',
+                            grey: '#DCDCDC'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="min-h-screen ischool-body">
+    <!-- Header - iSchool brand -->
+    <header class="ischool-header">
+        <div class="container mx-auto px-4 py-4">
+            <h1 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
+                <span class="font-normal opacity-90">SJSU</span>
+                <span class="border-l border-white/80 pl-3 ml-1 text-sm md:text-base font-normal uppercase tracking-wide">School of Information</span>
+                <span class="border-l border-white/80 pl-3 ml-2 text-base md:text-lg">Spectre Hologram Workshop</span>
+            </h1>
+            <p class="text-white/90 mt-1 text-sm">Create holograms with the Pepper's Ghost effect</p>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="container mx-auto px-4 py-8 max-w-7xl">
+        <!-- Instructions Section -->
+        <section id="instructions-section" class="ischool-section">
+            <h2 class="ischool-heading">How It Works</h2>
+            <div class="grid md:grid-cols-2 gap-4 ischool-text">
+                <div>
+                    <h3 class="ischool-subheading">What is Spectre Hologram?</h3>
+                    <p class="text-sm">The Spectre device is a plastic pyramid prism that sits on your phone screen. It uses the <strong class="text-[#1865BF]">Pepper's Ghost effect</strong> — a reflection-based optical illusion — to create a stunning 3D floating hologram!</p>
+                </div>
+                <div>
+                    <h3 class="ischool-subheading">Quick Steps</h3>
+                    <ol class="list-decimal list-inside text-sm space-y-1">
+                        <li>Upload a file or take a photo with your camera</li>
+                        <li>We'll format it for 4-face display</li>
+                        <li>Preview the hologram effect</li>
+                        <li>Download and place on your phone</li>
+                        <li>Add the pyramid prism and enjoy!</li>
+                    </ol>
+                </div>
+            </div>
+        </section>
+
+        <!-- Upload Section -->
+        <section id="upload-section" class="ischool-section">
+            <h2 class="ischool-heading">Upload Your Content</h2>
+            <div id="drop-zone" class="ischool-drop-zone">
+                <input type="file" id="file-input" accept="video/*,image/*" class="hidden">
+                <div class="ischool-drop-zone-text">
+                    <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <p class="text-lg font-semibold mb-2">Drag & drop your file here</p>
+                    <p class="text-sm">or click to browse</p>
+                    <p class="text-xs mt-2 opacity-80">Supports: MP4, WebM, GIF, PNG, JPG — or take a photo below</p>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-center">
+                <button type="button" id="camera-btn" class="ischool-btn ischool-btn-primary">
+                    Take photo with camera
+                </button>
+            </div>
+            <div id="camera-section" class="hidden mt-4 p-4 bg-[#333333] rounded-lg">
+                <p class="text-white text-sm mb-2">Position your subject, then click Capture</p>
+                <div class="relative inline-block mx-auto flex justify-center">
+                    <video id="camera-preview" class="max-w-full rounded border-2 border-[#1865BF]" autoplay playsinline muted></video>
+                </div>
+                <div class="mt-3 flex gap-2 justify-center flex-wrap">
+                    <button type="button" id="capture-btn" class="ischool-btn ischool-btn-cta">Capture photo</button>
+                    <button type="button" id="camera-cancel-btn" class="ischool-btn ischool-btn-secondary">Cancel</button>
+                </div>
+            </div>
+            <div id="file-info" class="hidden mt-4 p-4 ischool-file-info rounded-lg">
+                <p class="text-[#333333]"><span class="font-semibold">File:</span> <span id="file-name"></span></p>
+                <p class="text-[#1865BF] text-sm mt-1"><span class="font-semibold">Type:</span> <span id="file-type"></span></p>
+            </div>
+        </section>
+
+        <!-- Processing Section -->
+        <section id="processing-section" class="hidden ischool-section">
+            <div class="flex items-center justify-center gap-4">
+                <div class="animate-spin rounded-full h-8 w-8 border-2 border-[#E4EEF7] border-t-[#1865BF]"></div>
+                <p class="text-[#333333] text-lg">Processing your file...</p>
+            </div>
+            <div id="progress-bar" class="mt-4 w-full bg-[#E4EEF7] rounded-full h-2">
+                <div id="progress-fill" class="bg-[#1865BF] h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+        </section>
+
+        <!-- Preview Section -->
+        <section id="preview-section" class="hidden ischool-section">
+            <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                <h2 class="ischool-heading mb-0">Preview</h2>
+                <div class="flex gap-2">
+                    <button id="viewer-mode-btn" class="ischool-btn ischool-btn-primary">
+                        Viewer Mode
+                    </button>
+                    <button id="download-btn" class="ischool-btn ischool-btn-cta">
+                        Download
+                    </button>
+                </div>
+            </div>
+            <div id="preview-container" class="bg-[#333333] rounded-lg p-4 flex justify-center">
+                <canvas id="preview-canvas" class="max-w-full"></canvas>
+            </div>
+            <div class="mt-4 text-center ischool-muted text-sm">
+                <p>This is how your content will appear on the phone screen</p>
+            </div>
+        </section>
+
+        <!-- Viewer Mode Section: fullscreen hologram for prism placement -->
+        <section id="viewer-section" class="hidden ischool-section ischool-viewer-section">
+            <div class="flex justify-between items-center mb-2 flex-wrap gap-2">
+                <h2 class="ischool-heading mb-0">Place prism on screen</h2>
+                <div class="flex gap-2">
+                    <button id="fullscreen-btn" class="ischool-btn ischool-btn-primary text-sm">Fullscreen</button>
+                    <button id="exit-viewer-btn" class="ischool-btn ischool-btn-secondary">Exit Viewer</button>
+                </div>
+            </div>
+            <div id="viewer-container" class="ischool-viewer-fullscreen">
+                <img id="viewer-hologram-img" alt="Hologram for prism" class="ischool-viewer-img" />
+            </div>
+            <div class="mt-2 text-center ischool-muted text-sm">
+                <p>Display is scaled to 2.5 in per prism side (5 in total). Go Fullscreen and place your Spectre prism on the screen.</p>
+            </div>
+        </section>
+
+        <!-- Detailed Instructions -->
+        <section id="detailed-instructions" class="ischool-section">
+            <h2 class="ischool-heading">Detailed Instructions</h2>
+            <div class="space-y-4 ischool-text">
+                <div>
+                    <h3 class="ischool-subheading">1. Understanding Pepper's Ghost Effect</h3>
+                    <p class="text-sm">The plastic pyramid prism uses reflection to create a 3D illusion. Each of the 4 sides reflects one quadrant of your phone screen, making it appear as if a 3D object is floating inside the pyramid.</p>
+                </div>
+                <div>
+                    <h3 class="ischool-subheading">2. Setting Up Your Phone</h3>
+                    <ul class="list-disc list-inside text-sm space-y-1">
+                        <li>Set your phone brightness to maximum</li>
+                        <li>Use a dark or dimly lit room for best results</li>
+                        <li>Place your phone screen facing up on a flat surface</li>
+                        <li>Open the downloaded file in fullscreen mode</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="ischool-subheading">3. Placing the Pyramid Prism</h3>
+                    <ul class="list-disc list-inside text-sm space-y-1">
+                        <li>Center the pyramid prism on your phone screen</li>
+                        <li>Make sure all 4 sides are touching the screen</li>
+                        <li>The base should be flat against the phone</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="ischool-subheading">4. Viewing Your Hologram</h3>
+                    <ul class="list-disc list-inside text-sm space-y-1">
+                        <li>Look at the pyramid from the sides, not from above</li>
+                        <li>Move around to see the effect from different angles</li>
+                        <li>The darker the room, the more impressive the effect!</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Scripts -->
+    <script src="js/app.js"></script>
+    <script src="js/image-processor.js"></script>
+    <script src="js/video-processor.js"></script>
+    <script src="js/preview.js"></script>
+    <script src="js/viewer.js"></script>
+</body>
+</html>

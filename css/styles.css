@@ -1,0 +1,351 @@
+/* Spectre Hologram Workshop - SJSU School of Information theme */
+
+/* iSchool color palette */
+:root {
+    --ischool-blue: #1865BF;
+    --ischool-blue-light: #E4EEF7;
+    --ischool-dark: #333333;
+    --ischool-yellow: #FFCC00;
+    --ischool-grey: #DCDCDC;
+    --ischool-white: #FFFFFF;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    color: var(--ischool-dark);
+}
+
+/* Page background - white main area, light blue accent like iSchool */
+.ischool-body {
+    background-color: var(--ischool-white);
+    background-image: radial-gradient(ellipse at top right, var(--ischool-blue-light) 0%, transparent 50%);
+}
+
+/* Header - iSchool primary blue */
+.ischool-header {
+    background-color: var(--ischool-blue);
+    color: var(--ischool-white);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Content sections - light blue sidebar feel, white content */
+.ischool-section {
+    background-color: var(--ischool-white);
+    border: 1px solid var(--ischool-grey);
+    border-radius: 4px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(51, 51, 51, 0.08);
+}
+
+.ischool-heading {
+    color: var(--ischool-dark);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.ischool-heading.mb-0 {
+    margin-bottom: 0;
+}
+
+.ischool-subheading {
+    color: var(--ischool-dark);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.ischool-text {
+    color: var(--ischool-dark);
+}
+
+.ischool-muted {
+    color: var(--ischool-dark);
+    opacity: 0.85;
+}
+
+/* Drop zone - light blue background, blue border */
+.ischool-drop-zone {
+    border: 2px dashed var(--ischool-blue);
+    background-color: var(--ischool-blue-light);
+    border-radius: 4px;
+    padding: 3rem;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.ischool-drop-zone:hover {
+    background-color: rgba(24, 101, 191, 0.08);
+}
+
+.ischool-drop-zone-text {
+    color: var(--ischool-blue);
+}
+
+#drop-zone.drag-over {
+    background-color: rgba(24, 101, 191, 0.15);
+    border-color: var(--ischool-blue);
+}
+
+/* File info box */
+.ischool-file-info {
+    background-color: var(--ischool-blue-light);
+    border: 1px solid rgba(24, 101, 191, 0.2);
+}
+
+/* Buttons - iSchool style */
+.ischool-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.ischool-btn-primary {
+    background-color: var(--ischool-blue);
+    color: var(--ischool-white);
+    border-color: var(--ischool-blue);
+}
+
+.ischool-btn-primary:hover {
+    background-color: #1454a0;
+    border-color: #1454a0;
+    filter: brightness(1.05);
+}
+
+.ischool-btn-cta {
+    background-color: var(--ischool-white);
+    color: var(--ischool-dark);
+    border-color: var(--ischool-yellow);
+}
+
+.ischool-btn-cta:hover {
+    background-color: var(--ischool-blue-light);
+    border-color: var(--ischool-blue);
+}
+
+.ischool-btn-secondary {
+    background-color: var(--ischool-grey);
+    color: var(--ischool-dark);
+}
+
+.ischool-btn-secondary:hover {
+    background-color: #c5c5c5;
+}
+
+.ischool-btn-accent {
+    background-color: var(--ischool-yellow);
+    color: var(--ischool-dark);
+    border-color: var(--ischool-yellow);
+}
+
+.ischool-btn-accent:hover {
+    filter: brightness(1.05);
+}
+
+/* Viewer section - keep dark for hologram simulation */
+.ischool-viewer-section {
+    background-color: var(--ischool-blue-light);
+    border-color: var(--ischool-grey);
+}
+
+.ischool-viewer-section .ischool-heading {
+    color: var(--ischool-dark);
+}
+
+/* Viewer: fullscreen hologram for prism placement */
+/* Scaled so center-to-panel = 2.5in (Spectre prism side); total box = 5in × 5in */
+.ischool-viewer-fullscreen {
+    background: #000;
+    border-radius: 4px;
+    width: 5in;
+    height: 5in;
+    max-width: 100%;
+    max-height: 80vh;
+    min-height: 200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.ischool-viewer-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.ischool-viewer-container {
+    background: linear-gradient(to bottom, #2d2d2d, #1a1a1a);
+    border-radius: 4px;
+    padding: 2rem;
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 1000px;
+    perspective-origin: center center;
+}
+
+/* Hologram pyramid faces */
+#hologram-pyramid {
+    width: 300px;
+    height: 300px;
+    transform-style: preserve-3d;
+    transition: transform 0.3s ease;
+}
+
+.hologram-face {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    background-size: cover;
+    background-position: center;
+    opacity: 0.85;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+}
+
+/* Face 1 - Front (0°) */
+#face-1 {
+    transform: rotateY(0deg) translateZ(150px);
+}
+
+/* Face 2 - Right (90°) */
+#face-2 {
+    transform: rotateY(90deg) translateZ(150px);
+}
+
+/* Face 3 - Back (180°) */
+#face-3 {
+    transform: rotateY(180deg) translateZ(150px);
+}
+
+/* Face 4 - Left (270°) */
+#face-4 {
+    transform: rotateY(270deg) translateZ(150px);
+}
+
+/* Pyramid base */
+#pyramid-base {
+    width: 300px;
+    height: 300px;
+    background: rgba(100, 100, 100, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transform: rotateX(90deg) translateZ(-150px);
+}
+
+/* Viewer container perspective */
+#viewer-container {
+    perspective: 1000px;
+    perspective-origin: center center;
+}
+
+#hologram-pyramid {
+    transform-style: preserve-3d;
+}
+
+/* Dark mode for viewer */
+.viewer-dark {
+    background: #000 !important;
+}
+
+.viewer-bright {
+    background: linear-gradient(to bottom, #1a1a1a, #2d2d2d) !important;
+}
+
+/* Canvas styling */
+canvas {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+}
+
+/* Smooth animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Button hover effects */
+button {
+    transition: all 0.2s ease;
+}
+
+button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+/* Section transitions */
+section {
+    transition: opacity 0.3s ease;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Loading spinner */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #hologram-pyramid {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .hologram-face {
+        width: 200px;
+        height: 200px;
+    }
+    
+    #face-1, #face-2, #face-3, #face-4 {
+        transform: translateZ(100px);
+    }
+    
+    #pyramid-base {
+        width: 200px;
+        height: 200px;
+        transform: rotateX(90deg) translateZ(-100px);
+    }
+}
