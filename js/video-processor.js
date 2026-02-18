@@ -84,18 +84,30 @@ class VideoProcessor {
      * Note: Full video processing requires MediaRecorder API
      */
     static downloadVideo(canvas, fileName) {
-        // For now, download as image sequence or use canvas to video conversion
-        // In a production app, you'd use MediaRecorder to encode the full video
-        canvas.toBlob((blob) => {
+        // Backward compatibility with previous signature (canvas, fileName)
+        if (canvas instanceof HTMLCanvasElement) {
+            canvas.toBlob((blob) => {
+                if (!blob) return;
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${fileName}_hologram.png`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+            return Promise.resolve();
+        }
+
+        // New signature: (inputVideoFile, fileName) -> process full video, then download.
+        return this.processVideoBlobToHologram(canvas).then((blob) => {
+            const ext = blob.type.includes('mp4') ? 'mp4' : 'webm';
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${fileName}_hologram.png`;
+            a.download = `${fileName}_hologram.${ext}`;
             a.click();
             URL.revokeObjectURL(url);
         });
-        
-        alert('Note: Full video processing is in development. For now, a frame has been exported. For full videos, consider using video editing software to create the 4-face format.');
     }
     
     /**
@@ -114,5 +126,246 @@ class VideoProcessor {
         
         videoElement.addEventListener('timeupdate', updateFrame);
         updateFrame();
+    }
+
+    static getSupportedMediaRecorderMimeType() {
+        const mimeTypes = [
+            'video/webm;codecs=vp9,opus',
+            'video/webm;codecs=vp8,opus',
+            'video/webm',
+            'video/mp4'
+        ];
+        for (const mimeType of mimeTypes) {
+            if (window.MediaRecorder && MediaRecorder.isTypeSupported(mimeType)) {
+                return mimeType;
+            }
+        }
+        return '';
+    }
+
+    static createMediaRecorder(stream) {
+        const mimeType = this.getSupportedMediaRecorderMimeType();
+        if (mimeType) {
+            return new MediaRecorder(stream, { mimeType });
+        }
+        return new MediaRecorder(stream);
+    }
+
+    /**
+     * Encode canvases to a video blob.
+     */
+    static encodeCanvasFramesToVideo(frames, fps = 24, onProgress = null) {
+        return new Promise((resolve, reject) => {
+            if (!window.MediaRecorder) {
+                reject(new Error('MediaRecorder not supported.'));
+                return;
+            }
+            if (!frames || !frames.length) {
+                reject(new Error('No frames provided.'));
+                return;
+            }
+
+            const width = frames[0].width;
+            const height = frames[0].height;
+            const outputCanvas = document.createElement('canvas');
+            const outputCtx = outputCanvas.getContext('2d');
+            outputCanvas.width = width;
+            outputCanvas.height = height;
+
+            const stream = outputCanvas.captureStream(Math.max(1, fps));
+            let recorder;
+            try {
+                recorder = this.createMediaRecorder(stream);
+            } catch (err) {
+                reject(err);
+                return;
+            }
+
+            const chunks = [];
+            recorder.addEventListener('dataavailable', (e) => {
+                if (e.data && e.data.size > 0) chunks.push(e.data);
+            });
+            recorder.addEventListener('error', (e) => {
+                reject(e.error || new Error('Video encoding failed.'));
+            });
+            recorder.addEventListener('stop', () => {
+                const mimeType = recorder.mimeType || 'video/webm';
+                resolve(new Blob(chunks, { type: mimeType }));
+            });
+
+            const frameDelay = 1000 / Math.max(1, fps);
+            let frameIndex = 0;
+            recorder.start(200);
+            if (typeof onProgress === 'function') {
+                onProgress(0);
+            }
+
+            const drawNext = () => {
+                const frame = frames[frameIndex];
+                outputCtx.clearRect(0, 0, width, height);
+                outputCtx.drawImage(frame, 0, 0);
+                frameIndex += 1;
+                if (typeof onProgress === 'function') {
+                    onProgress(Math.max(0, Math.min(100, Math.round((frameIndex / frames.length) * 100))));
+                }
+                if (frameIndex < frames.length) {
+                    setTimeout(drawNext, frameDelay);
+                } else {
+                    setTimeout(() => recorder.stop(), frameDelay);
+                }
+            };
+            drawNext();
+        });
+    }
+
+    /**
+     * Convert input video Blob/File to hologram-formatted video Blob.
+     */
+    static processVideoBlobToHologram(videoBlob, options = {}) {
+        return new Promise((resolve, reject) => {
+            if (!window.MediaRecorder) {
+                reject(new Error('MediaRecorder not supported in this browser.'));
+                return;
+            }
+
+            const video = document.createElement('video');
+            video.preload = 'auto';
+            video.muted = true;
+            video.playsInline = true;
+            video.crossOrigin = 'anonymous';
+
+            const src = URL.createObjectURL(videoBlob);
+            video.src = src;
+
+            video.addEventListener('loadedmetadata', () => {
+                const videoWidth = video.videoWidth || 640;
+                const videoHeight = video.videoHeight || 480;
+                const faceSize = Math.max(videoWidth, videoHeight);
+                const gap = Math.round(faceSize * VideoProcessor.CENTER_GAP_RATIO);
+
+                const outputCanvas = document.createElement('canvas');
+                const outputCtx = outputCanvas.getContext('2d');
+                outputCanvas.width = 2 * gap + faceSize;
+                outputCanvas.height = 2 * gap + faceSize;
+
+                const fps = options.fps || 24;
+                const stream = outputCanvas.captureStream(fps);
+                let recorder;
+                try {
+                    recorder = this.createMediaRecorder(stream);
+                } catch (err) {
+                    URL.revokeObjectURL(src);
+                    reject(err);
+                    return;
+                }
+
+                const chunks = [];
+                recorder.addEventListener('dataavailable', (e) => {
+                    if (e.data && e.data.size > 0) chunks.push(e.data);
+                });
+                recorder.addEventListener('error', (e) => {
+                    URL.revokeObjectURL(src);
+                    reject(e.error || new Error('Recording failed.'));
+                });
+                recorder.addEventListener('stop', () => {
+                    URL.revokeObjectURL(src);
+                    resolve(new Blob(chunks, { type: recorder.mimeType || 'video/webm' }));
+                });
+
+                const renderLoop = () => {
+                    if (video.paused || video.ended) {
+                        if (video.ended && recorder.state !== 'inactive') {
+                            recorder.stop();
+                        }
+                        return;
+                    }
+                    outputCtx.fillStyle = '#000000';
+                    outputCtx.fillRect(0, 0, outputCanvas.width, outputCanvas.height);
+                    this.drawVideoFrame(video, outputCtx, faceSize, gap);
+                    requestAnimationFrame(renderLoop);
+                };
+
+                recorder.start(250);
+                video.currentTime = 0;
+                video.play().then(() => {
+                    renderLoop();
+                }).catch((err) => {
+                    URL.revokeObjectURL(src);
+                    reject(err);
+                });
+            }, { once: true });
+
+            video.addEventListener('error', () => {
+                URL.revokeObjectURL(src);
+                reject(new Error('Could not load video for processing.'));
+            }, { once: true });
+        });
+    }
+
+    /**
+     * Live autoplay preview: continuously renders a hologram-formatted video onto preview canvas.
+     * Returns a cleanup function to stop RAF + pause video.
+     */
+    static startHologramPreview(videoElement, previewCanvas, options = {}) {
+        const maxWidth = options.maxWidth || 800;
+        const shouldLoop = options.loop !== false;
+        const onAfterDraw = typeof options.onAfterDraw === 'function' ? options.onAfterDraw : null;
+        const onFrame = typeof options.onFrame === 'function' ? options.onFrame : null;
+
+        const videoWidth = videoElement.videoWidth || 640;
+        const videoHeight = videoElement.videoHeight || 480;
+        const faceSize = Math.max(videoWidth, videoHeight);
+        const gap = Math.round(faceSize * VideoProcessor.CENTER_GAP_RATIO);
+        const renderWidth = 2 * gap + faceSize;
+        const renderHeight = 2 * gap + faceSize;
+
+        const scale = Math.min(maxWidth / renderWidth, maxWidth / renderHeight, 1);
+        previewCanvas.width = Math.round(renderWidth * scale);
+        previewCanvas.height = Math.round(renderHeight * scale);
+
+        const renderCanvas = document.createElement('canvas');
+        renderCanvas.width = renderWidth;
+        renderCanvas.height = renderHeight;
+        const renderCtx = renderCanvas.getContext('2d');
+        const previewCtx = previewCanvas.getContext('2d');
+
+        let rafId = null;
+        let stopped = false;
+
+        const draw = () => {
+            if (stopped) return;
+            if (videoElement.ended) {
+                if (shouldLoop) {
+                    videoElement.currentTime = 0;
+                    videoElement.play().catch(() => {});
+                } else {
+                    return;
+                }
+            }
+
+            renderCtx.fillStyle = '#000000';
+            renderCtx.fillRect(0, 0, renderWidth, renderHeight);
+            this.drawVideoFrame(videoElement, renderCtx, faceSize, gap);
+            if (onFrame) {
+                onFrame(renderCanvas);
+            }
+
+            previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+            previewCtx.drawImage(renderCanvas, 0, 0, previewCanvas.width, previewCanvas.height);
+            if (onAfterDraw) {
+                onAfterDraw(previewCtx, previewCanvas.width, previewCanvas.height);
+            }
+            rafId = requestAnimationFrame(draw);
+        };
+
+        videoElement.loop = shouldLoop;
+        videoElement.play().catch(() => {});
+        rafId = requestAnimationFrame(draw);
+
+        return () => {
+            stopped = true;
+            if (rafId) cancelAnimationFrame(rafId);
+            videoElement.pause();
+        };
     }
 }

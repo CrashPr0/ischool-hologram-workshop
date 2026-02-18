@@ -105,6 +105,61 @@ body {
     border: 2px solid transparent;
 }
 
+.ischool-btn[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.ischool-btn.is-busy {
+    position: relative;
+}
+
+.recording-dot {
+    display: inline-block;
+    width: 0.6rem;
+    height: 0.6rem;
+    margin-right: 0.4rem;
+    border-radius: 9999px;
+    background: #ff4d4f;
+    vertical-align: middle;
+}
+
+.recording-live .recording-dot {
+    animation: recordingPulse 1s ease-in-out infinite;
+}
+
+@keyframes recordingPulse {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.8;
+    }
+    50% {
+        transform: scale(1.15);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.8);
+        opacity: 0.8;
+    }
+}
+
+.animation-export-progress-track {
+    width: 100%;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: #e4eef7;
+    overflow: hidden;
+}
+
+.animation-export-progress-fill {
+    height: 100%;
+    border-radius: 9999px;
+    background: #1865BF;
+    transition: width 0.2s linear;
+}
+
 .ischool-btn-primary {
     background-color: var(--ischool-blue);
     color: var(--ischool-white);
@@ -203,6 +258,14 @@ body {
 /* Detailed Instructions: collapsible dropdown */
 #detailed-instructions details summary::-webkit-details-marker {
     display: none;
+}
+
+#fade-settings-details summary::-webkit-details-marker {
+    display: none;
+}
+
+#fade-settings-details summary {
+    user-select: none;
 }
 
 /* Camera preview: trapezoid overlay (matches hologram panel shape) */

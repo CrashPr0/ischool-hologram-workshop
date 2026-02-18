@@ -62,21 +62,26 @@
         <!-- Upload Section -->
         <section id="upload-section" class="ischool-section">
             <h2 class="ischool-heading">Upload Your Content</h2>
-            <div id="drop-zone" class="ischool-drop-zone">
-                <input type="file" id="file-input" accept="video/*,image/*" class="hidden">
-                <div class="ischool-drop-zone-text">
-                    <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                    </svg>
-                    <p class="text-lg font-semibold mb-2">Drag & drop your file here</p>
-                    <p class="text-sm">or click to browse</p>
-                    <p class="text-xs mt-2 opacity-80">Supports: MP4, WebM, GIF, PNG, JPG — or take a photo below</p>
-                </div>
-            </div>
-            <div class="mt-4 flex justify-center">
+            <div class="mt-4 flex justify-center gap-2 flex-wrap">
                 <button type="button" id="camera-btn" class="ischool-btn ischool-btn-primary">
-                    Take photo with camera
+                    Record / Take Photo
                 </button>
+                <button type="button" id="toggle-upload-btn" class="ischool-btn ischool-btn-secondary">
+                    Upload file
+                </button>
+            </div>
+            <div id="upload-panel" class="hidden mt-4">
+                <div id="drop-zone" class="ischool-drop-zone">
+                    <input type="file" id="file-input" accept="video/*,image/*" class="hidden">
+                    <div class="ischool-drop-zone-text">
+                        <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        <p class="text-lg font-semibold mb-2">Drag & drop your file here</p>
+                        <p class="text-sm">or click to browse</p>
+                        <p class="text-xs mt-2 opacity-80">Supports: MP4, WebM, GIF, PNG, JPG — or take a photo below</p>
+                    </div>
+                </div>
             </div>
             <div id="camera-section" class="hidden mt-4 p-4 bg-[#333333] rounded-lg">
                 <p class="text-white text-sm mb-2">Position your subject inside the trapezoid — this is how it will appear in the hologram</p>
@@ -95,13 +100,90 @@
                 </div>
                 <div class="mt-3 flex gap-2 justify-center flex-wrap">
                     <button type="button" id="capture-btn" class="ischool-btn ischool-btn-cta">Capture photo</button>
+                    <button type="button" id="record-btn" class="ischool-btn ischool-btn-accent">Record video</button>
+                    <button type="button" id="stop-record-btn" class="hidden ischool-btn ischool-btn-secondary">Stop recording</button>
                     <button type="button" id="camera-cancel-btn" class="ischool-btn ischool-btn-secondary">Cancel</button>
+                </div>
+                <div id="recording-status" class="hidden mt-3 text-center">
+                    <p class="text-[#FFCC00] text-sm font-semibold">
+                        <span class="recording-dot" aria-hidden="true"></span>
+                        Recording... <span id="recording-timer">10</span>s remaining
+                    </p>
                 </div>
             </div>
             <div id="file-info" class="hidden mt-4 p-4 ischool-file-info rounded-lg">
                 <p class="text-[#333333]"><span class="font-semibold">File:</span> <span id="file-name"></span></p>
                 <p class="text-[#1865BF] text-sm mt-1"><span class="font-semibold">Type:</span> <span id="file-type"></span></p>
             </div>
+        </section>
+
+        <!-- Fade Animation Section -->
+        <section id="animation-section" class="ischool-section">
+            <details id="fade-settings-details" class="group">
+                <summary class="ischool-heading list-none cursor-pointer flex items-center justify-between gap-2 mb-0">
+                    <span>Fade Animation Settings</span>
+                    <span class="inline-block transition-transform group-open:rotate-180">▼</span>
+                </summary>
+                <div class="mt-4 space-y-4">
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="p-4 border border-[#DCDCDC] rounded-lg">
+                            <label for="animation-image-1" class="block text-sm font-semibold mb-2">Image A</label>
+                            <input id="animation-image-1" type="file" accept="image/*" class="block w-full text-sm" />
+                        </div>
+                        <div class="p-4 border border-[#DCDCDC] rounded-lg">
+                            <label for="animation-image-2" class="block text-sm font-semibold mb-2">Image B</label>
+                            <input id="animation-image-2" type="file" accept="image/*" class="block w-full text-sm" />
+                        </div>
+                    </div>
+                    <div class="mt-4 grid md:grid-cols-4 gap-3">
+                        <div>
+                            <label for="fade-duration" class="block text-xs font-semibold mb-1">Fade duration (seconds)</label>
+                            <input id="fade-duration" type="range" min="1" max="8" step="0.5" value="2" class="w-full" />
+                            <p class="text-xs text-[#333333] mt-1"><span id="fade-duration-value">2.0</span>s</p>
+                        </div>
+                        <div>
+                            <label for="fade-fps" class="block text-xs font-semibold mb-1">FPS</label>
+                            <select id="fade-fps" class="w-full p-2 border border-[#DCDCDC] rounded">
+                                <option value="12">12</option>
+                                <option value="24" selected>24</option>
+                                <option value="30">30</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="fade-direction" class="block text-xs font-semibold mb-1">Direction</label>
+                            <select id="fade-direction" class="w-full p-2 border border-[#DCDCDC] rounded">
+                                <option value="forward">A → B</option>
+                                <option value="reverse">B → A</option>
+                                <option value="pingpong" selected>A ↔ B</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <label class="inline-flex items-center gap-2 text-sm">
+                                <input id="fade-loop" type="checkbox" checked />
+                                Loop preview
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex gap-2 flex-wrap">
+                        <button id="generate-animation-btn" class="ischool-btn ischool-btn-primary" type="button">Generate Fade Animation</button>
+                        <div class="flex gap-2 items-center">
+                            <label for="animation-export-format" class="text-sm font-semibold">Export:</label>
+                            <select id="animation-export-format" class="p-2 border border-[#DCDCDC] rounded">
+                                <option value="video">Video (WebM/MP4)</option>
+                                <option value="gif">Animated GIF</option>
+                            </select>
+                            <button id="download-animation-btn" class="ischool-btn ischool-btn-cta" type="button" disabled>Download Animation</button>
+                        </div>
+                    </div>
+                    <div id="animation-export-progress-wrap" class="hidden mt-3">
+                        <div class="animation-export-progress-track">
+                            <div id="animation-export-progress-fill" class="animation-export-progress-fill" style="width: 0%"></div>
+                        </div>
+                        <p id="animation-export-progress-text" class="text-xs mt-1 text-[#333333]">0%</p>
+                    </div>
+                    <p id="animation-status" class="hidden mt-3 text-sm text-[#1865BF] font-semibold"></p>
+                </div>
+            </details>
         </section>
 
         <!-- Processing Section -->
@@ -196,10 +278,12 @@
     </main>
 
     <!-- Scripts -->
-    <script src="js/app.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
     <script src="js/image-processor.js"></script>
     <script src="js/video-processor.js"></script>
+    <script src="js/animation-processor.js"></script>
     <script src="js/preview.js"></script>
     <script src="js/viewer.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>

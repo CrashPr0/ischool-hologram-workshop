@@ -3,8 +3,8 @@
 class ImageProcessor {
     /** Distance from canvas center to each panel center (smaller = tighter center gap) */
     static CENTER_GAP_RATIO = 0.25;
-    /** Narrow (center) edge as fraction of wide edge (smaller = more taper). Panels: small base inward, wide base outward. */
-    static TRAPEZOID_TOP_RATIO = 0.45;
+    /** Narrow (center) edge as fraction of wide edge. Prism: 0.5in / 2.5in = 0.2 */
+    static TRAPEZOID_TOP_RATIO = 0.2;
 
     /**
      * Clip path: trapezoid with smaller base facing into the center gap, wide base outward.
