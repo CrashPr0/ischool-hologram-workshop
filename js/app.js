@@ -280,7 +280,7 @@ function showPreview() {
 async function handleDownload() {
     if (!formattedCanvas || !currentFile) return;
 
-    const baseName = currentFile.name.split('.')[0];
+    const baseName = (currentFile.name || 'hologram').split('.')[0];
     if (downloadBtn) {
         downloadBtn.disabled = true;
     }
@@ -358,10 +358,10 @@ function resetRecordingUi() {
 
 function getSupportedRecordingMimeType() {
     const mimeTypes = [
+        'video/mp4',
         'video/webm;codecs=vp9,opus',
         'video/webm;codecs=vp8,opus',
-        'video/webm',
-        'video/mp4'
+        'video/webm'
     ];
     for (const mimeType of mimeTypes) {
         if (window.MediaRecorder && MediaRecorder.isTypeSupported(mimeType)) {
@@ -431,7 +431,7 @@ function startRecording() {
         const type = mediaRecorder.mimeType || 'video/webm';
         const blob = new Blob(recordedChunks, { type });
         const ext = type.includes('mp4') ? 'mp4' : 'webm';
-        const file = new File([blob], `camera-recording.${ext}`, { type: blob.type || `video/${ext}` });
+        const file = createNamedFileLike(blob, `camera-recording.${ext}`, blob.type || `video/${ext}`);
 
         closeCamera(false);
         previewRecordedVideoInBrowser(file);
@@ -492,7 +492,7 @@ function captureFromCamera() {
     closeCamera();
     canvas.toBlob((blob) => {
         if (!blob) return;
-        const file = new File([blob], 'camera-capture.png', { type: 'image/png' });
+        const file = createNamedFileLike(blob, 'camera-capture.png', 'image/png');
         activeMode = 'single';
         handleFileSelect(file);
     }, 'image/png');
@@ -555,7 +555,7 @@ async function generateFadeAnimation() {
 
         activeMode = 'animation';
         formattedCanvas = animationFrames[0];
-        currentFile = new File([new Blob()], 'fade-animation', { type: 'application/x-animation' });
+        currentFile = createNamedFileLike(new Blob(), 'fade-animation.anim', 'application/x-animation');
         if (fileName) fileName.textContent = 'fade-animation';
         if (fileType) fileType.textContent = 'Animation';
         if (fileInfo) fileInfo.classList.remove('hidden');
@@ -637,6 +637,23 @@ function saveBlob(blob, fileNameToSave) {
     a.download = fileNameToSave;
     a.click();
     URL.revokeObjectURL(url);
+}
+
+function createNamedFileLike(blob, name, type) {
+    const normalizedBlob = blob instanceof Blob
+        ? blob.slice(0, blob.size, type || blob.type || 'application/octet-stream')
+        : new Blob([blob], { type: type || 'application/octet-stream' });
+
+    if (typeof File !== 'undefined') {
+        try {
+            return new File([normalizedBlob], name, { type: normalizedBlob.type });
+        } catch (_) {
+            // Fallback for older Safari/iPad implementations.
+        }
+    }
+
+    normalizedBlob.name = name;
+    return normalizedBlob;
 }
 
 function setButtonBusy(button, isBusy, busyText, idleText) {

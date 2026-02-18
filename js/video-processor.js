@@ -107,6 +107,45 @@ class VideoProcessor {
             a.download = `${fileName}_hologram.${ext}`;
             a.click();
             URL.revokeObjectURL(url);
+        }).catch(() => {
+            // iPad/Safari fallback when MediaRecorder/captureStream is limited: export a hologram PNG frame.
+            return this.downloadVideoFrame(canvas, fileName);
+        });
+    }
+
+    static downloadVideoFrame(videoBlob, fileName) {
+        return new Promise((resolve) => {
+            const video = document.createElement('video');
+            video.preload = 'metadata';
+            video.muted = true;
+            video.playsInline = true;
+            const src = URL.createObjectURL(videoBlob);
+            video.src = src;
+
+            video.addEventListener('loadeddata', () => {
+                this.formatForHologram(video, videoBlob, (canvas) => {
+                    canvas.toBlob((blob) => {
+                        if (!blob) {
+                            URL.revokeObjectURL(src);
+                            resolve();
+                            return;
+                        }
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `${fileName}_hologram.png`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        URL.revokeObjectURL(src);
+                        resolve();
+                    }, 'image/png');
+                });
+            }, { once: true });
+
+            video.addEventListener('error', () => {
+                URL.revokeObjectURL(src);
+                resolve();
+            }, { once: true });
         });
     }
     
@@ -130,10 +169,10 @@ class VideoProcessor {
 
     static getSupportedMediaRecorderMimeType() {
         const mimeTypes = [
+            'video/mp4',
             'video/webm;codecs=vp9,opus',
             'video/webm;codecs=vp8,opus',
-            'video/webm',
-            'video/mp4'
+            'video/webm'
         ];
         for (const mimeType of mimeTypes) {
             if (window.MediaRecorder && MediaRecorder.isTypeSupported(mimeType)) {
@@ -171,6 +210,10 @@ class VideoProcessor {
             const outputCtx = outputCanvas.getContext('2d');
             outputCanvas.width = width;
             outputCanvas.height = height;
+            if (typeof outputCanvas.captureStream !== 'function') {
+                reject(new Error('captureStream not supported.'));
+                return;
+            }
 
             const stream = outputCanvas.captureStream(Math.max(1, fps));
             let recorder;
@@ -247,6 +290,11 @@ class VideoProcessor {
                 const outputCtx = outputCanvas.getContext('2d');
                 outputCanvas.width = 2 * gap + faceSize;
                 outputCanvas.height = 2 * gap + faceSize;
+                if (typeof outputCanvas.captureStream !== 'function') {
+                    URL.revokeObjectURL(src);
+                    reject(new Error('captureStream not supported.'));
+                    return;
+                }
 
                 const fps = options.fps || 24;
                 const stream = outputCanvas.captureStream(fps);
