@@ -30,12 +30,13 @@ class VideoProcessor {
     static drawVideoFrame(video, ctx, faceSize, gap) {
         const videoWidth = video.videoWidth || 640;
         const videoHeight = video.videoHeight || 480;
-        const cropW = Math.min(videoWidth, (videoHeight * 3) / 4);
-        const cropH = (cropW * 4) / 3;
-        const sx = (videoWidth - cropW) / 2;
-        const sy = (videoHeight - cropH) / 2;
-        const drawSize = Math.min(faceSize, Math.floor(gap * Math.SQRT2));
-        const scale = Math.min(drawSize / cropW, drawSize / cropH);
+        const sx = 0;
+        const sy = 0;
+        const cropW = videoWidth;
+        const cropH = videoHeight;
+        const drawSize = Math.min(faceSize, Math.floor(gap * Math.SQRT2 * 1.05));
+        const half = drawSize / 2;
+        const scale = Math.max(drawSize / cropW, drawSize / cropH);
         const dw = cropW * scale;
         const dh = cropH * scale;
         const dHalfW = dw / 2;
@@ -46,9 +47,10 @@ class VideoProcessor {
         const cx = canvasWidth / 2;
         const cy = canvasHeight / 2;
 
-        // TOP at (cx, cy - gap), 0°
+        // TOP at (cx, cy - gap), 0°, trapezoid
         ctx.save();
         ctx.translate(cx, cy - gap);
+        ImageProcessor.clipPanelTrapezoid(ctx, 'TOP', half);
         ctx.drawImage(video, sx, sy, cropW, cropH, -dHalfW, -dHalfH, dw, dh);
         ctx.restore();
 
@@ -56,6 +58,7 @@ class VideoProcessor {
         ctx.save();
         ctx.translate(cx + gap, cy);
         ctx.rotate(Math.PI / 2);
+        ImageProcessor.clipPanelTrapezoid(ctx, 'RIGHT', half);
         ctx.drawImage(video, sx, sy, cropW, cropH, -dHalfW, -dHalfH, dw, dh);
         ctx.restore();
 
@@ -63,6 +66,7 @@ class VideoProcessor {
         ctx.save();
         ctx.translate(cx, cy + gap);
         ctx.rotate(Math.PI);
+        ImageProcessor.clipPanelTrapezoid(ctx, 'BOTTOM', half);
         ctx.drawImage(video, sx, sy, cropW, cropH, -dHalfW, -dHalfH, dw, dh);
         ctx.restore();
 
@@ -70,6 +74,7 @@ class VideoProcessor {
         ctx.save();
         ctx.translate(cx - gap, cy);
         ctx.rotate(-Math.PI / 2);
+        ImageProcessor.clipPanelTrapezoid(ctx, 'LEFT', half);
         ctx.drawImage(video, sx, sy, cropW, cropH, -dHalfW, -dHalfH, dw, dh);
         ctx.restore();
     }

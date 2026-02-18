@@ -181,6 +181,25 @@ body {
     display: block;
 }
 
+/* Detailed Instructions: collapsible dropdown */
+#detailed-instructions details summary::-webkit-details-marker {
+    display: none;
+}
+
+/* Camera preview: trapezoid overlay (matches hologram panel shape) */
+.camera-preview-wrapper {
+    display: inline-block;
+    line-height: 0;
+}
+.camera-trapezoid-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
 .ischool-viewer-container {
     background: linear-gradient(to bottom, #2d2d2d, #1a1a1a);
     border-radius: 4px;

@@ -3,6 +3,45 @@
 class ImageProcessor {
     /** Distance from canvas center to each panel center (smaller = tighter center gap) */
     static CENTER_GAP_RATIO = 0.25;
+    /** Narrow (center) edge as fraction of wide edge (smaller = more taper). Panels: small base inward, wide base outward. */
+    static TRAPEZOID_TOP_RATIO = 0.45;
+
+    /**
+     * Clip path: trapezoid with smaller base facing into the center gap, wide base outward.
+     * In local coords (after translate/rotate): narrow edge on the center-facing side, wide on the outer.
+     * TOP: narrow at bottom (+y), wide at top (-y). RIGHT/LEFT: same shape, rotation makes narrow face center.
+     */
+    static clipPanelTrapezoid(ctx, side, half) {
+        const narrow = half * ImageProcessor.TRAPEZOID_TOP_RATIO; // half-width of center-facing (smaller) edge
+        ctx.beginPath();
+        if (side === 'TOP') {
+            // Narrow at bottom (y=+half, toward center), wide at top (y=-half, outer)
+            ctx.moveTo(-narrow, half);
+            ctx.lineTo(narrow, half);
+            ctx.lineTo(half, -half);
+            ctx.lineTo(-half, -half);
+        } else if (side === 'RIGHT') {
+            // After +90° rotate: local +y = screen left = center. So narrow at local y=+half, wide at y=-half.
+            ctx.moveTo(-narrow, half);
+            ctx.lineTo(narrow, half);
+            ctx.lineTo(half, -half);
+            ctx.lineTo(-half, -half);
+        } else if (side === 'BOTTOM') {
+            // After 180° rotate: local +y = toward center. So narrow at y=+half, wide at y=-half (same path as TOP).
+            ctx.moveTo(-narrow, half);
+            ctx.lineTo(narrow, half);
+            ctx.lineTo(half, -half);
+            ctx.lineTo(-half, -half);
+        } else {
+            // LEFT: after -90° rotate, local +y = screen right = center. So narrow at local y=+half, wide at y=-half.
+            ctx.moveTo(-narrow, half);
+            ctx.lineTo(narrow, half);
+            ctx.lineTo(half, -half);
+            ctx.lineTo(-half, -half);
+        }
+        ctx.closePath();
+        ctx.clip();
+    }
 
     /**
      * Format an image for 4-face hologram display.
@@ -14,7 +53,9 @@ class ImageProcessor {
 
         const faceSize = Math.max(image.width, image.height);
         const gap = Math.round(faceSize * ImageProcessor.CENTER_GAP_RATIO);
-        const drawSize = Math.min(faceSize, Math.floor(gap * Math.SQRT2));
+        // Panel size: 5% larger than non-overlapping (gap * √2 * 1.05)
+        const drawSize = Math.min(faceSize, Math.floor(gap * Math.SQRT2 * 1.05));
+        const half = drawSize / 2;
 
         canvas.width = 2 * gap + faceSize;
         canvas.height = 2 * gap + faceSize;
@@ -25,19 +66,21 @@ class ImageProcessor {
         const cx = canvas.width / 2;
         const cy = canvas.height / 2;
 
-        const cropW = Math.min(image.width, (image.height * 3) / 4);
-        const cropH = (cropW * 4) / 3;
-        const sx = (image.width - cropW) / 2;
-        const sy = (image.height - cropH) / 2;
-        const scale = Math.min(drawSize / cropW, drawSize / cropH);
+        // No 3:4 crop — use full image, scale to cover panel so only trapezoid clips
+        const sx = 0;
+        const sy = 0;
+        const cropW = image.width;
+        const cropH = image.height;
+        const scale = Math.max(drawSize / cropW, drawSize / cropH);
         const dw = cropW * scale;
         const dh = cropH * scale;
         const dHalfW = dw / 2;
         const dHalfH = dh / 2;
 
-        // TOP at (cx, cy - gap), rotation 0°
+        // TOP at (cx, cy - gap), rotation 0°, trapezoid: base toward center (bottom)
         ctx.save();
         ctx.translate(cx, cy - gap);
+        ImageProcessor.clipPanelTrapezoid(ctx, 'TOP', half);
         ctx.drawImage(image, sx, sy, cropW, cropH, -dHalfW, -dHalfH, dw, dh);
         ctx.restore();
 
@@ -45,6 +88,7 @@ class ImageProcessor {
         ctx.save();
         ctx.translate(cx + gap, cy);
         ctx.rotate(Math.PI / 2);
+        ImageProcessor.clipPanelTrapezoid(ctx, 'RIGHT', half);
         ctx.drawImage(image, sx, sy, cropW, cropH, -dHalfW, -dHalfH, dw, dh);
         ctx.restore();
 
@@ -52,6 +96,7 @@ class ImageProcessor {
         ctx.save();
         ctx.translate(cx, cy + gap);
         ctx.rotate(Math.PI);
+        ImageProcessor.clipPanelTrapezoid(ctx, 'BOTTOM', half);
         ctx.drawImage(image, sx, sy, cropW, cropH, -dHalfW, -dHalfH, dw, dh);
         ctx.restore();
 
@@ -59,6 +104,7 @@ class ImageProcessor {
         ctx.save();
         ctx.translate(cx - gap, cy);
         ctx.rotate(-Math.PI / 2);
+        ImageProcessor.clipPanelTrapezoid(ctx, 'LEFT', half);
         ctx.drawImage(image, sx, sy, cropW, cropH, -dHalfW, -dHalfH, dw, dh);
         ctx.restore();
 
@@ -70,11 +116,11 @@ class ImageProcessor {
      */
     static getFaceCanvases(image) {
         const faceSize = Math.max(image.width, image.height);
-        const cropW = Math.min(image.width, (image.height * 3) / 4);
-        const cropH = (cropW * 4) / 3;
-        const sx = (image.width - cropW) / 2;
-        const sy = (image.height - cropH) / 2;
-        const scale = Math.min(faceSize / cropW, faceSize / cropH);
+        const sx = 0;
+        const sy = 0;
+        const cropW = image.width;
+        const cropH = image.height;
+        const scale = Math.max(faceSize / cropW, faceSize / cropH);
         const dw = cropW * scale;
         const dh = cropH * scale;
         const halfW = dw / 2;

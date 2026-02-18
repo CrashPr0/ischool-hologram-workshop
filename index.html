@@ -28,10 +28,9 @@
     <!-- Header - iSchool brand -->
     <header class="ischool-header">
         <div class="container mx-auto px-4 py-4">
-            <h1 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
-                <span class="font-normal opacity-90">SJSU</span>
-                <span class="border-l border-white/80 pl-3 ml-1 text-sm md:text-base font-normal uppercase tracking-wide">School of Information</span>
-                <span class="border-l border-white/80 pl-3 ml-2 text-base md:text-lg">Spectre Hologram Workshop</span>
+            <h1 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-3 flex-wrap">
+                <img src="assets/soi.svg" alt="SJSU School of Information" class="h-7 md:h-8 w-auto" />
+                <span class="border-l border-white/80 pl-3 text-base md:text-lg">Spectre Hologram Workshop</span>
             </h1>
             <p class="text-white/90 mt-1 text-sm">Create holograms with the Pepper's Ghost effect</p>
         </div>
@@ -80,9 +79,19 @@
                 </button>
             </div>
             <div id="camera-section" class="hidden mt-4 p-4 bg-[#333333] rounded-lg">
-                <p class="text-white text-sm mb-2">Position your subject, then click Capture</p>
-                <div class="relative inline-block mx-auto flex justify-center">
-                    <video id="camera-preview" class="max-w-full rounded border-2 border-[#1865BF]" autoplay playsinline muted></video>
+                <p class="text-white text-sm mb-2">Position your subject inside the trapezoid — this is how it will appear in the hologram</p>
+                <div class="flex justify-center">
+                    <div class="camera-preview-wrapper relative inline-block rounded overflow-hidden border-2 border-[#1865BF]">
+                        <video id="camera-preview" class="block max-w-full rounded" autoplay playsinline muted></video>
+                        <div class="camera-trapezoid-overlay" aria-hidden="true">
+                            <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                <!-- Darkened area with trapezoid cutout (narrow at bottom, wide at top) -->
+                                <path fill-rule="evenodd" fill="rgba(0,0,0,0.55)" d="M0,0 L100,0 L100,100 L0,100 Z M 32,100 L 68,100 L 95,0 L 5,0 Z"/>
+                                <!-- Trapezoid outline: smaller narrow base, bigger wide base -->
+                                <path fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="2.5" vector-effect="non-scaling-stroke" d="M 5,0 L 95,0 L 68,100 L 32,100 Z"/>
+                            </svg>
+                        </div>
+                    </div>
                 </div>
                 <div class="mt-3 flex gap-2 justify-center flex-wrap">
                     <button type="button" id="capture-btn" class="ischool-btn ischool-btn-cta">Capture photo</button>
@@ -144,10 +153,14 @@
             </div>
         </section>
 
-        <!-- Detailed Instructions -->
+        <!-- Detailed Instructions (collapsible) -->
         <section id="detailed-instructions" class="ischool-section">
-            <h2 class="ischool-heading">Detailed Instructions</h2>
-            <div class="space-y-4 ischool-text">
+            <details class="group">
+                <summary class="ischool-heading list-none cursor-pointer flex items-center justify-between gap-2">
+                    <span>Detailed Instructions</span>
+                    <span class="inline-block transition-transform group-open:rotate-180">▼</span>
+                </summary>
+                <div class="space-y-4 ischool-text mt-4">
                 <div>
                     <h3 class="ischool-subheading">1. Understanding Pepper's Ghost Effect</h3>
                     <p class="text-sm">The plastic pyramid prism uses reflection to create a 3D illusion. Each of the 4 sides reflects one quadrant of your phone screen, making it appear as if a 3D object is floating inside the pyramid.</p>
@@ -178,6 +191,7 @@
                     </ul>
                 </div>
             </div>
+            </details>
         </section>
     </main>
 
