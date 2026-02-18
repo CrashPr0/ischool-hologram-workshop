@@ -13,31 +13,34 @@ class ImageProcessor {
      */
     static clipPanelTrapezoid(ctx, side, half) {
         const narrow = half * ImageProcessor.TRAPEZOID_TOP_RATIO; // half-width of center-facing (smaller) edge
+        // Round to integers so clip path is pixel-aligned (fixes iPad Safari where clip() can fail with floats)
+        const halfR = Math.round(half);
+        const narrowR = Math.round(narrow);
         ctx.beginPath();
         if (side === 'TOP') {
             // Narrow at bottom (y=+half, toward center), wide at top (y=-half, outer)
-            ctx.moveTo(-narrow, half);
-            ctx.lineTo(narrow, half);
-            ctx.lineTo(half, -half);
-            ctx.lineTo(-half, -half);
+            ctx.moveTo(-narrowR, halfR);
+            ctx.lineTo(narrowR, halfR);
+            ctx.lineTo(halfR, -halfR);
+            ctx.lineTo(-halfR, -halfR);
         } else if (side === 'RIGHT') {
             // After +90° rotate: local +y = screen left = center. So narrow at local y=+half, wide at y=-half.
-            ctx.moveTo(-narrow, half);
-            ctx.lineTo(narrow, half);
-            ctx.lineTo(half, -half);
-            ctx.lineTo(-half, -half);
+            ctx.moveTo(-narrowR, halfR);
+            ctx.lineTo(narrowR, halfR);
+            ctx.lineTo(halfR, -halfR);
+            ctx.lineTo(-halfR, -halfR);
         } else if (side === 'BOTTOM') {
             // After 180° rotate: local +y = toward center. So narrow at y=+half, wide at y=-half (same path as TOP).
-            ctx.moveTo(-narrow, half);
-            ctx.lineTo(narrow, half);
-            ctx.lineTo(half, -half);
-            ctx.lineTo(-half, -half);
+            ctx.moveTo(-narrowR, halfR);
+            ctx.lineTo(narrowR, halfR);
+            ctx.lineTo(halfR, -halfR);
+            ctx.lineTo(-halfR, -halfR);
         } else {
             // LEFT: after -90° rotate, local +y = screen right = center. So narrow at local y=+half, wide at y=-half.
-            ctx.moveTo(-narrow, half);
-            ctx.lineTo(narrow, half);
-            ctx.lineTo(half, -half);
-            ctx.lineTo(-half, -half);
+            ctx.moveTo(-narrowR, halfR);
+            ctx.lineTo(narrowR, halfR);
+            ctx.lineTo(halfR, -halfR);
+            ctx.lineTo(-halfR, -halfR);
         }
         ctx.closePath();
         ctx.clip();
