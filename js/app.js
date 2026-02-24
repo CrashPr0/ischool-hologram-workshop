@@ -317,7 +317,7 @@ function enterViewerMode() {
     if (previewSection) previewSection.classList.add('hidden');
     if (viewerSection) viewerSection.classList.remove('hidden');
     const isVideo = currentFile && currentFile.type.startsWith('video/');
-    Viewer.initialize(formattedCanvas, isVideo);
+    Viewer.initialize(formattedCanvas, isVideo, currentFile);
 }
 
 async function openCamera() {
